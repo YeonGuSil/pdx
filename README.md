@@ -9,13 +9,21 @@ particular AI: every person and every model is a replaceable executor.
 
 ## Get started
 
-1. Run the installer (macOS, Linux):
+1. Run the installer.
+
+   macOS, Linux:
 
    ```sh
    curl -fsSL https://raw.githubusercontent.com/YeonGuSil/pdx/main/install.sh | sh
    ```
 
-2. Add the line it prints to your shell profile, open a new terminal, and check:
+   Windows (PowerShell):
+
+   ```powershell
+   irm https://raw.githubusercontent.com/YeonGuSil/pdx/main/install.ps1 | iex
+   ```
+
+2. Run the `PATH` line it prints, open a new terminal, and check:
 
    ```sh
    pdx --version
@@ -49,6 +57,6 @@ purposes; a team of 10 or more PDX users requests approval.
 
 ## About this repository
 
-This repository is PDX's home page, manual and download site. It holds documents and the installer; binaries will be
+This repository is PDX's home page, manual and download site. It holds documents and the installers; binaries will be
 attached to [Releases](https://github.com/YeonGuSil/pdx/releases), one per version tag. The source code is not
 published here.

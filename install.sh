@@ -49,6 +49,8 @@ os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 arch="$(uname -m)"
 case "$os" in
   darwin|linux) ;;
+  mingw*|msys*|cygwin*) fail "on Windows use install.ps1 in PowerShell:
+  irm https://raw.githubusercontent.com/YeonGuSil/pdx/main/install.ps1 | iex" ;;
   *) fail "unsupported operating system: $os (macOS and Linux are supported)" ;;
 esac
 case "$arch" in

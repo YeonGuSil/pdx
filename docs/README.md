@@ -4,6 +4,7 @@
 
 - [Installing](install.md)
   - [Install script](install.md#install-script)
+  - [Windows (PowerShell)](install.md#windows-powershell)
   - [What the demo installer does](install.md#what-the-demo-installer-does)
   - [Another directory](install.md#another-directory)
   - [Checking the installation](install.md#checking-the-installation)
