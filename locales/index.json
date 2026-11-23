@@ -2,6 +2,6 @@
   "schema": 1,
   "source": "en",
   "format": "icu-mf1-text-v1",
-  "namespaces": ["ui", "modules"],
+  "namespaces": ["ui", "modules", "terms"],
   "locales": ["en", "ja", "ko"]
 }
