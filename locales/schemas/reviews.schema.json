@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "locales/<tag>/reviews.json — approvals of messages marked review: security (maintainers only)",
+  "description": "An approval is bound to the exact source message and the exact translated text. It is void when either hash no longer matches.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "locale",
+    "approvals"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2}|-[0-9]{3})?$"
+    },
+    "approvals": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*:[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)*$",
+        "description": "<namespace>:<message id>"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sourceHash",
+          "valueHash"
+        ],
+        "properties": {
+          "sourceHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "valueHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "SHA-256 of the translated value's UTF-8 bytes."
+          }
+        }
+      }
+    }
+  }
+}

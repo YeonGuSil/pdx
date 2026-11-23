@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "locales/<tag>/meta.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "tag",
+    "name",
+    "direction",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "tag": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2}|-[0-9]{3})?$",
+      "description": "Equal to the directory's name."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The language's own name for itself."
+    },
+    "direction": {
+      "enum": [
+        "ltr",
+        "rtl"
+      ]
+    },
+    "status": {
+      "enum": [
+        "source",
+        "draft",
+        "active"
+      ],
+      "description": "source: the source locale. draft: being translated; not offered by any release. active: maintained and reviewed. Whether a release ships it is said by that release, not here."
+    },
+    "fallback": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2}|-[0-9]{3})?$",
+      "description": "The locale read when a message is missing, stale or not yet approved. Chosen explicitly — no subtag is stripped automatically. Required unless status is source. Chains end at the source locale and have no cycle (checked across files)."
+    }
+  },
+  "if": {
+    "properties": {
+      "status": {
+        "const": "source"
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "fallback": false
+    }
+  },
+  "else": {
+    "required": [
+      "fallback"
+    ]
+  }
+}

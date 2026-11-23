@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "tag": "ko",
+  "name": "한국어",
+  "direction": "ltr",
+  "status": "draft",
+  "fallback": "en"
+}

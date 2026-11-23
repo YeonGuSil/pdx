@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "locales/<tag>/<namespace>.json — a translation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "locale",
+    "namespace",
+    "messages"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2}|-[0-9]{3})?$"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^(?!(meta|reviews)$)[a-z][a-z0-9-]*$"
+    },
+    "messages": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)*$",
+        "maxLength": 120
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "value",
+          "sourceHash"
+        ],
+        "properties": {
+          "value": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "sourceHash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "The hash of the source message this translation was written against (locales/README.md)."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "tag": "ja",
+  "name": "日本語",
+  "direction": "ltr",
+  "status": "draft",
+  "fallback": "en"
+}

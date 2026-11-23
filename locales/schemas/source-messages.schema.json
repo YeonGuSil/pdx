@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "locales/<source>/<namespace>.json — the source catalog (generated; not edited here)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "locale",
+    "namespace",
+    "messages"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2}|-[0-9]{3})?$"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^(?!(meta|reviews)$)[a-z][a-z0-9-]*$"
+    },
+    "messages": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/sourceMessage"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*(\\.[a-z][A-Za-z0-9]*)*$",
+      "maxLength": 120
+    },
+    "argType": {
+      "oneOf": [
+        {
+          "enum": [
+            "string",
+            "integer",
+            "number",
+            "date",
+            "time",
+            "datetime",
+            "list"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enum"
+          ],
+          "properties": {
+            "enum": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "sourceMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "args": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/argType"
+          }
+        },
+        "context": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "What the translator needs to know: where it is shown, what the arguments are."
+        },
+        "review": {
+          "enum": [
+            "security"
+          ],
+          "description": "A message a person decides on (consent, security, an external effect). Its translation is shown only after a bilingual review."
+        },
+        "group": {
+          "$ref": "#/$defs/id",
+          "description": "Messages shown together (a prompt and its buttons). A group falls back as a whole."
+        },
+        "deprecated": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "replacedBy": {
+              "$ref": "#/$defs/id"
+            }
+          },
+          "description": "Still read by a released binary, no longer by the next. replacedBy is optional: a message may be removed with no successor. Removed in a later catalog; the id is never reused."
+        }
+      }
+    }
+  }
+}

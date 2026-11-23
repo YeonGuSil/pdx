@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "locales/index.json",
+  "description": "Which locales and namespaces take part in the catalog. It does not say which languages a release ships.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "source",
+    "format",
+    "namespaces",
+    "locales"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "source": {
+      "$ref": "#/$defs/tag",
+      "description": "The source locale. Every other locale translates it."
+    },
+    "format": {
+      "const": "icu-mf1-text-v1",
+      "description": "The message syntax profile (locales/README.md)."
+    },
+    "namespaces": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^(?!(meta|reviews)$)[a-z][a-z0-9-]*$"
+      },
+      "description": "One message file per namespace in every locale directory: <namespace>.json."
+    },
+    "locales": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/tag"
+      },
+      "description": "Directory names under locales/, sorted. Must contain the source locale."
+    }
+  },
+  "$defs": {
+    "tag": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Z][a-z]{3})?(-[A-Z]{2}|-[0-9]{3})?$",
+      "description": "A canonical BCP 47 tag: language, optional script, optional region."
+    }
+  }
+}

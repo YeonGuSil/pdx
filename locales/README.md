@@ -1,0 +1,222 @@
+# Language packs
+
+The words the PDX workspace shows, per language.
+
+> **Draft — not in use yet.** PDX is English only today. No release reads these files, no language can be selected,
+> no check exists as a command, and the message files do not exist yet. `ko` and `ja` are listed as drafts; they are
+> not supported languages.
+>
+> This page has two parts. [The file format](#the-file-format) is what these files are. [Planned
+> behaviour](#planned-behaviour) is what PDX is required to do with them before any language ships — requirements,
+> not something a release does today.
+
+## Layout
+
+```
+locales/
+├── README.md              this file
+├── index.json             which locales and namespaces take part
+├── schemas/               the JSON Schemas of every file here
+├── en/                    the source locale — generated from PDX's source; not edited here
+│   ├── meta.json
+│   ├── ui.json            (not published yet)
+│   └── modules.json       (not published yet)
+├── ko/                    a translation
+│   ├── meta.json
+│   ├── ui.json            (not started)
+│   ├── modules.json       (not started)
+│   └── reviews.json       (maintainers; appears with the first approval)
+└── ja/
+    └── …
+```
+
+| file | holds | who writes it |
+| --- | --- | --- |
+| `index.json` | the source locale, the message format, the namespaces, the locale directories | maintainers |
+| `<tag>/meta.json` | the language's name, direction, status and fallback | maintainers |
+| `en/<namespace>.json` | the source messages: text, arguments, context for translators | generated; a pull request that edits it is declined |
+| `<tag>/<namespace>.json` | the translations | translators, by pull request |
+| `<tag>/reviews.json` | approvals of the messages a person decides on | maintainers only |
+
+What is **not** here: translated documents go to `docs/<tag>/`; translations of the licence are separate and are
+never the governing text.
+
+## The file format
+
+Every file has a `schema` number and a JSON Schema under `schemas/`.
+
+### Locale tags
+
+A directory's name is a [BCP 47](https://www.rfc-editor.org/info/bcp47) tag of this subset: a language, then
+optionally a script, then optionally a region — `ko`, `en`, `ja`, `zh-Hant`, `pt-BR`, `es-419`, `zh-Hant-TW`.
+Variants and extensions are not supported. The tag is the canonical one of the IANA registry (`he`, not `iw`), and
+carries a script or a region only when the text really differs: `ko`, not `ko-KR`.
+
+A locale other than the source names its `fallback` in `meta.json`. The fallback is chosen explicitly — nothing is
+derived by cutting a tag short. Every chain ends at the source locale and has no cycle.
+
+### Message files
+
+One file per namespace. A namespace is a part of the product (`ui`, `modules`). The names `meta` and `reviews`
+are reserved for the files of those names.
+
+The source, `en/modules.json`:
+
+```json
+{
+  "schema": 1,
+  "locale": "en",
+  "namespace": "modules",
+  "messages": {
+    "home.compact.rowCounts": {
+      "value": "{reports, plural, one {# report} other {# reports}} · {waiting, number} waiting on you",
+      "args": { "reports": "integer", "waiting": "integer" },
+      "context": "Compact work card: number of reports, number of items waiting on the person."
+    }
+  }
+}
+```
+
+A translation, `ko/modules.json`:
+
+```json
+{
+  "schema": 1,
+  "locale": "ko",
+  "namespace": "modules",
+  "messages": {
+    "home.compact.rowCounts": {
+      "value": "보고 {reports, number}건 · 내 확인 대기 {waiting, number}건",
+      "sourceHash": "574d212b392b99b90b0740e20bfc0198f4b1fca6e25c1ad0d7f056ab8dd385f8"
+    }
+  }
+}
+```
+
+The arguments, their types, the context and the review marks belong to the source. A translation holds only its
+text and the hash of the source message it was written against. Keys are sorted; files carry no timestamps.
+
+### Message ids
+
+An id names what a message **means** (`home.compact.rowCounts`), inside its namespace. It is not a path into PDX's
+source code and does not change when that code is reorganized.
+
+- An id is never reused for a different meaning.
+- When a meaning changes, a new id is added and the old one is marked `deprecated` in the source, with `replacedBy`
+  when it has a successor.
+- A deprecated id is removed in a later catalog.
+
+### Message syntax — `icu-mf1-text-v1`
+
+> The profile is a draft until the first source catalog is published, and is frozen from that publication. After
+> that it is not redefined: a change is a new `format` name.
+
+Messages are [ICU MessageFormat](https://unicode-org.github.io/icu/userguide/format_parse/messages/) version 1,
+restricted to plain text.
+
+| construct | form | notes |
+| --- | --- | --- |
+| argument | `{name}` | |
+| number | `{n, number}` · `{n, number, integer}` | no other style, no skeleton |
+| date, time | `{d, date, short}` — `short` · `medium` · `long`; the same for `time` | the style is required |
+| plural | `{n, plural, one {# item} other {# items}}` | the categories of **the translation's own language**; exact matches (`=0`) allowed; `offset:` is not |
+| select | `{mode, select, month {…} week {…} other {…}}` | only over the values the source declares for that argument |
+
+- **Not in the profile:** `selectordinal`, custom formatters, and markup of any kind — a `<` is a `<`.
+- **Apostrophes** follow ICU's `DOUBLE_OPTIONAL` rule: U+0027 starts quoting before `{` or `}`, or before `#` only
+  in a message immediately inside a `plural`. A doubled U+0027 produces one literal apostrophe, including within
+  quoted text. Quoting ends at the next undoubled U+0027, or at the end of the pattern. Anywhere else an apostrophe
+  is literal.
+- **Depth:** a `plural` or `select` may hold one further `plural` or `select`, not more.
+- Every `plural` and `select` has an `other` branch. An empty branch (`other {}`) is allowed.
+- A translation may reorder arguments and may use plural categories the source does not. It may not use an argument
+  the source does not declare.
+- A list of names arrives already formatted in the reader's language, as one argument of type `list`.
+
+### `sourceHash`
+
+`sourceHash` is the SHA-256, in lowercase hexadecimal, of the UTF-8 bytes of the
+[JSON Canonicalization Scheme (RFC 8785)](https://www.rfc-editor.org/rfc/rfc8785) form of exactly this object,
+built from the source message:
+
+```json
+{ "value": value, "args": args or {}, "context": context or "", "review": review or "", "group": group or "" }
+```
+
+No Unicode normalization is applied; there is no byte order mark and no trailing newline; an `enum` array keeps its
+order. For the source message shown above the canonical form begins `{"args":{"reports":"integer",` and the hash is
+the one in the Korean example.
+
+When the English text, its arguments, its context or its review marks change, the hash changes, and every
+translation of that message is **stale** until a translator looks at it again and updates the hash.
+
+A namespace's **catalog digest** is the SHA-256 of the RFC 8785 form of the whole source file.
+
+### Approvals — `reviews.json`
+
+A source message marked `"review": "security"` is one a person decides on: a consent, a security prompt, an
+authorization of an external effect. A syntax check cannot tell that a translation inverted its meaning; a person
+who reads both languages can. Such an approval is recorded by a maintainer in `<tag>/reviews.json`, keyed
+`<namespace>:<id>`, with the `sourceHash` and the SHA-256 of the translated text. It is void as soon as either no
+longer matches. Translators do not edit this file.
+
+### Extending the format
+
+- More source text is more message ids, not a second text field on a message.
+- A new field on a message or in a metadata file is a new `schema` number with a new schema file; whether the field
+  takes part in `sourceHash` is said when it is added.
+- The old shape stays readable at the tags that used it.
+
+## Planned behaviour
+
+Requirements on PDX and on the check that will accept translations. **None of this is implemented.**
+
+**Fallback.** A message that is missing, stale, or marked for review and not approved is shown in the fallback
+locale, with that locale's own plural rules. Messages the source puts in one `group` (a prompt and its buttons) fall
+back together, never half-translated.
+
+**Coverage** is not written by hand anywhere. It is counted from the messages that are present, valid, not stale
+and, where review is required, approved.
+
+**The check** refuses:
+
+- a file that does not match its schema; a duplicate key at any level (found before parsing); an id the source does
+  not have;
+- a locale directory that `index.json` does not list or the reverse; a `tag` that differs from its directory; a tag
+  that is not canonical; a fallback that is missing, unknown or cyclic;
+- an `index.json` whose `source` is not among its `locales`, or any locale other than exactly that one with the
+  status `source`; a message or review file whose `locale` differs from its directory; a message file whose
+  `namespace` differs from its file name or is not in `index.json`;
+- a message outside the `icu-mf1-text-v1` profile; an argument the source does not declare, or one used against its
+  declared type; a required argument dropped from a branch where the source shows it;
+- any control character other than a line feed; the bidirectional controls U+061C, U+200E, U+200F, U+202A–U+202E and
+  U+2066–U+2069;
+- a file, a message, a formatted result, a whole pack or a count of messages over the budgets the check publishes
+  with its first version.
+
+**Rendering.** A message is rendered as text only and is never interpreted as markup or code — no `eval`, no
+callbacks. Pack data embedded in an HTML file is escaped for that serialization context. A substituted value is opaque data; names and paths are placed in direction-isolated containers by the
+renderer, not by the translation. Layouts are tested with long strings and with a right-to-left language before one
+ships.
+
+**Releases.** PDX never fetches a language pack. The packs a release offers are built into that release from this
+directory at a pinned commit, and the release names the locales it includes, each catalog digest, and the
+interpreter and locale-data versions it was built with. A pack is not loaded across versions. Binding these to a
+release's signed record is part of the release work and is not claimed here.
+
+## Changing things later
+
+| to | do |
+| --- | --- |
+| add a language | add `<tag>/meta.json` with `"status": "draft"` and its `fallback`; add the tag to `index.json` |
+| add a namespace | add its name to `index.json`; the source file arrives generated |
+| translate | edit `<tag>/<namespace>.json`: one entry per id, `value` and `sourceHash` |
+| change an English text | not here — it changes in PDX's source and arrives generated |
+| change a file's shape | a new `schema` number and a new file under `schemas/` |
+| change the message syntax | a new `format` name in `index.json` |
+
+## Not decided yet
+
+- When the English source catalog is first published, and with it the check as a command you can run.
+- Which languages the first localized release offers.
+- Localized command-line messages (`pdx --help`, refusals): later, in a namespace of their own.
